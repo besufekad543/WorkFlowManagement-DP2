@@ -1,0 +1,739 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://pad.polito.it/Workflow" xmlns:tns="http://pad.polito.it/Workflow">
+
+	<!-- Key definition -->
+	<xs:element name="workflowMonitor" type="tns:workflowMonitor">
+		<xs:key name="workflowKey">
+			<xs:selector xpath="workflow" />
+			<xs:field xpath="@wf_name" />
+		</xs:key>
+		<xs:keyref name="processKey" refer="tns:workflowKey">
+			<xs:selector xpath="process" />
+			<xs:field xpath="@wfnameRef" />
+		</xs:keyref>
+		<xs:key name="actionKey">
+			<xs:selector xpath="action" />
+			<xs:field xpath="@action_name" />
+		</xs:key>
+		<xs:keyref name="nextActionKeyRef" refer="tns:actionKey">
+			<xs:selector xpath="action" />
+			<xs:field xpath="@next_action" />
+		</xs:keyref>
+	</xs:element>
+	<!-- ComplexType definition -->
+	<xs:complexType name="workflowMonitor">
+		<xs:sequence>
+			<xs:element name="workflow" type="tns:workflow" maxOccurs="unbounded"
+				minOccurs="0" />
+			<xs:element name="process" type="tns:process" maxOccurs="unbounded"
+				minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="workflow">
+		<xs:annotation>
+			<xs:documentation>
+				This type identifies the workflow. wf_Name element
+				is the workfow name which uniquely identifies a workflow in the xml
+				and it's mandatory.
+				and type action which has one or more occurences.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="action" type="tns:action" maxOccurs="unbounded"
+				minOccurs="1" />
+		</xs:sequence>
+		<xs:attribute name="wf_name" type="tns:alphaNumericType"
+			use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="process">
+		<xs:annotation>
+			<xs:documentation>
+				This type identifies the process. wfnameref element
+				is
+				the workfow name reference to specific workflow which
+				uniquely
+				identifies a workflow in the xml and it's
+				mandatory, start_time of
+				the process. and type status
+				for actionstatus which has one or more
+				occurences.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="status" type="tns:status" maxOccurs="unbounded"
+				minOccurs="1" />
+		</xs:sequence>
+		<xs:attribute name="wfnameRef" type="tns:alphaNumericType"
+			use="required" />
+		<xs:attribute name="start_time" type="xs:dateTime" use="required" />
+	</xs:complexType>
+
+	<xs:complexType name="action">
+		<xs:annotation>
+			<xs:documentation>
+				This type identifies the action. action_name
+				element is
+				the action name reference to specific action
+				which uniquely
+				identifies a action in the workflow
+			</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="action_name" type="tns:alphaNumericType"
+			use="required" />
+
+		<xs:attribute name="role" type="tns:alphabeticType" use="optional" />
+		<xs:attribute name="isautoinst" type="xs:boolean" use="optional" />
+
+		<xs:attribute name="type" type="tns:actiontype" use="optional" />
+
+		<xs:attribute name="enclosed_workflow" type="tns:alphaNumericType"
+			use="optional" />
+
+		<xs:attribute name="action_workflow" type="tns:alphaNumericType" />
+		<xs:attribute name="next_action" type="tns:alphabeticType" />
+	</xs:complexType>
+
+	<xs:complexType name="status">
+		<xs:annotation>
+			<xs:documentation>
+				This type identifies the status fo the action.
+				Inside action status there is actor element.
+			</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="actortype" type="tns:actortype"
+				maxOccurs="1" minOccurs="0" />
+		</xs:sequence>
+		<xs:attribute name="action_name" type="tns:alphaNumericType"
+			use="required" />
+
+		<xs:attribute name="termination_time" type="xs:dateTime"
+			use="optional" />
+
+	</xs:complexType>
+
+	<!-- ComplexType definition of main operations -->
+	<xs:element name="CreateNewProcess">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This operation identifies the request to create
+					new process .
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="workflowName" type="tns:alphaNumericType" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="CreateNewProcessResponse">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This operation identifies the response to create
+					new process .
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="sucess" type="xs:boolean" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<!-- ComplexType definition of read operations -->
+	<xs:element name="getWorkflow">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This request contains the workflow name that
+					uniquely identifies a workflow in the xml.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="workflowName" type="tns:alphaNumericType" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="getWorkflowResponse">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This response contains the selected Workflow.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="return" type="tns:workflow" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="getWorkflows">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This request contains the selected page number of
+					the set.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="pageNumber" type="xs:int" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getWorkflowsResponse">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This response contains the page number of the set,
+					the last page
+					indicator and the set of the workflows.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+
+				<xs:element name="pageNumber" type="xs:int" />
+				<xs:element name="lastPage" type="xs:boolean" />
+				<xs:element name="return" type="tns:workflow" maxOccurs="unbounded"
+					minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getAction">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This request contains the action name that
+					identifies a action in the workflow.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+
+				<xs:element name="workflowName" type="tns:alphaNumericType">
+				</xs:element>
+				<xs:element name="ActionName" type="tns:alphaNumericType" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getActionResponse">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This response contains the selected action.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+
+				<xs:element name="return" type="tns:action" maxOccurs="1"
+					minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getActions">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This request contains the selected page number of
+					the set.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+
+				<xs:element name="workflowName" type="tns:alphaNumericType"></xs:element>
+				<xs:element name="pageNumber" type="xs:int" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getActionsResponse">
+
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This response contains the page number of the set,
+					the last page
+					indicator and the set of the actions.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+
+				<xs:element name="pageNumber" type="xs:int" />
+				<xs:element name="lastPage" type="xs:boolean" />
+				<xs:element name="return" type="tns:action" maxOccurs="unbounded"
+					minOccurs="1" />
+
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="getProcess">
+
+		<xs:complexType>
+			<xs:sequence>
+
+				<xs:element name="WorkflowName" type="tns:alphaNumericType" />
+				<xs:element name="StartTime" type="xs:dateTime"></xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getProcessResponse">
+
+		<xs:complexType>
+			<xs:sequence>
+
+				<xs:element name="return " type="tns:process" maxOccurs="1"
+					minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="getProcesses">
+
+		<xs:annotation>
+			<xs:documentation>
+				This request contains the selected page number of
+				the set.
+			</xs:documentation>
+		</xs:annotation>
+
+		<xs:complexType>
+			<xs:sequence>
+
+				<xs:element name="pageNumber" type="xs:int" />
+
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getProcessesResponse">
+
+		<xs:annotation>
+			<xs:documentation>
+				This response contains the page number of the set,
+				the last page
+				indicator and the set of the processes.
+			</xs:documentation>
+		</xs:annotation>
+
+		<xs:complexType>
+			<xs:sequence>
+
+				<xs:element name="pageNumber" type="xs:int" />
+				<xs:element name="lastPage" type="xs:boolean" />
+				<xs:element name="return" type="tns:process" maxOccurs="unbounded"
+					minOccurs="0" />
+
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getActionStatus">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This request contains the action name that
+					identifies a action status in the workflow.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+
+				<xs:element name="ActorName" type="tns:alphabeticType" />
+
+				<xs:element name="ActorRole" type="tns:alphabeticType"></xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getActionStatusResponse">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This response contain zero or one action status.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+
+				<xs:element name="return" type="tns:status" maxOccurs="1"
+					minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getActionStatusList">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This request contains the selected page number of
+					the list, the workflowname
+					and to identify the
+					selected action status
+					instance.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+
+				<xs:element name="WorkflowName" type="tns:alphaNumericType">
+				</xs:element>
+				<xs:element name="pageNumber" type="xs:int" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getActionStatusListResponse">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This response contains the requested page number,
+					the indicator of the
+					last page and the list of action status.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="pageNumber" type="xs:int" />
+				<xs:element name="lastPage" type="xs:boolean" />
+				<xs:element name="return" type="tns:status" maxOccurs="unbounded"
+					minOccurs="1" />
+
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="getActor">
+
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This request contains the selected actor name and
+					role
+					to identify the selected actor.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="actorName" type="tns:alphabeticType" />
+				<xs:element name="actorRole" type="tns:alphabeticType" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="getActorResponse">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This response contains the requested actor.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="return" type="tns:actortype" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+
+	<xs:element name="UnknownWorkflow">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified
+					workflow
+					name doesn't
+					correspond to any workflow name of the
+					workflows in the
+					database.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="UnknownWorkflow" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="UnknownProcess">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified
+					workflow
+					name doesn't
+					correspond to any workflow name of the
+					processes in the
+					workflow.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="UnknownProcess" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="InvalidArgument">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the input
+					parameters
+					are not valid.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="message" type="xs:string" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="Monitor">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when an error in the
+					initialization manager occurs.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="Monitor" type="xs:string" maxOccurs="1"
+					minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="UnknownAction">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified
+					action
+					name
+					doesn't
+					correspond to any action name of the actions in
+					the
+					workflows.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="UnknownAction" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="UnknownStatus">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified action
+					name
+					doesn't correspond
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="UnknownStatus" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="UnknownActor">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified actor
+					who has taken over the execution of action instance
+					doesn't
+					correspond
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="UnknownActor" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+
+
+	<xs:element name="CreateNewAction">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This operation identifies the Request to create
+					new action .
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="workflowName" type="tns:alphaNumericType"></xs:element>
+				<xs:element name="ActionName" type="tns:alphaNumericType" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="CreateNewActionResponse">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This operation identifies the Response to create
+					new action .
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="sucess" type="xs:boolean" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="ProcessAlreadyCreated">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified
+					process has already been created on this specified
+					automatically
+					istanciated action
+					instance.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="ProcessAlreadyCreated" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="UnknownWorkflowName">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified
+					workflowName to create process doesnt exist in the workflow.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="UnknownWorkflowName" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="ActionAlreadyCreated">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified
+					action
+					has already been created on this specified workflow
+					instance.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="ActionAlreadyCreated" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="TakeOverAnAction">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This operation identifies the Request to Take Over
+					An Action.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="workflowName" type="tns:alphaNumericType">
+				</xs:element>
+				<xs:element name="actionName" type="tns:alphaNumericType">
+				</xs:element>
+				<xs:element name="actorName" type="tns:alphabeticType"></xs:element>
+				<xs:element name="actorRole" type="tns:alphabeticType"></xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="TakeOverAnActionResponse">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This operation identifies the Response to Take
+					Over An Action.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="sucess" type="xs:boolean" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="CompleteAnAction">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This operation identifies the Request to Complete
+					An Action.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="WorkflowName" type="tns:alphabeticType"></xs:element>
+				<xs:element name="ActionName" type="tns:alphabeticType"></xs:element>
+				<xs:element name="ActorName" type="tns:alphabeticType" />
+				<xs:element name="ActionType" type="tns:actiontype" />
+				<xs:element name="NextAction"
+					type="tns:alphabeticType">
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="CompleteAnActionResponse">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This operation identifies the Response to Complete
+					An Action.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="sucess" type="xs:boolean" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="UnknownActionType">
+		<xs:complexType>
+			<xs:annotation>
+				<xs:documentation>
+					This exception is thrown when the specified
+					action
+					type doesn't correspond to any action type in actions.
+				</xs:documentation>
+			</xs:annotation>
+			<xs:sequence>
+				<xs:element name="UnknownActionType" type="xs:string"
+					maxOccurs="1" minOccurs="0" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<!-- SimpleType definition -->
+	<xs:simpleType name="alphaNumericType">
+		<xs:restriction base="xs:normalizedString">
+			<xs:pattern value="[A-Za-z][a-zA-Z0-9]*" />
+		</xs:restriction>
+
+	</xs:simpleType>
+	<xs:simpleType name="alphabeticType">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[A-Za-z ]*" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="actiontype">
+		<xs:restriction base="xs:normalizedString">
+			<xs:enumeration value="SIMPLE" />
+			<xs:enumeration value="PROCESS" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="actortype">
+		<xs:attribute name="actor_name" type="tns:alphabeticType" />
+		<xs:attribute name="role" type="tns:alphabeticType" />
+	</xs:complexType>
+</xs:schema>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jaxws:bindings wsdlLocation="../wsdl/control/Workflow.wsdl" xmlns:jaxws="http://java.sun.com/xml/ns/jaxws">
+ <jaxws:enableWrapperStyle>false</jaxws:enableWrapperStyle>
+ <jaxws:enableAsyncMapping>true</jaxws:enableAsyncMapping>
+</jaxws:bindings>

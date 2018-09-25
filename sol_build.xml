@@ -1,0 +1,200 @@
+<?xml version="1.0"?>
+
+<project name="sol_build" basedir="." default="build-server">
+
+	<!-- This is a generic build that uses the following
+	     properties for identifying the proper classes
+	     and names:
+	        "package" 	  the package where the Java classes are
+        	"class" 	  the main class to be used for generation
+          you can call the generic generate-wsdl if you set these properties
+         when calling ant.
+	-->
+	<!-- The default test case -->
+	<property name="testcase" value="0" />
+	
+	<property name="debug" value="true" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.7" />
+	<property name="source" value="1.7" />
+	
+	<!-- Directory -->
+	<property name="wsdl.dir" value="${basedir}/wsdl"/>
+	<property name="build.dir" value="${basedir}/build"/>
+	<property name="lib.dir" value="${basedir}/lib" />
+	<property name="src-server.dir" value="${basedir}/src/it/polito/dp2/WF/sol4/server" />
+	<property name="src-client1.dir" value="${basedir}/src/it/polito/dp2/WF/sol4/client1" />
+	<property name="src-client2.dir" value="${basedir}/src/it/polito/dp2/WF/sol4/client2" />
+			
+	<property name="gen.dir" value="${basedir}/generated/gen-src" />
+	<property name="schema.dir" value="${basedir}/xsd" />
+	<property name="META-INF.dir" value="${build.dir}/META-INF" />
+	<property name="custom.dir" value="${basedir}/custom" />
+
+	<!-- Files  -->
+	<property name="wsdl_Server.file" location="${META-INF.dir}/server/wsdl/Workflow.wsdl" />
+	<property name="url.wsdl" value="http://localhost:7071/wfinfo?wsdl"/>
+	<property name="url.wsdl2" value="http://localhost:7070/wfcontrol?wsdl"/>
+	<property name="url.xsd" value="http://localhost:7071/wfinfo?xsd=1"/>
+	<property name="url.xsd2" value="http://localhost:7070/wfinfo?xsd=1"/>
+	<property name="client.info.workflow.wsdl.file" value="${META-INF.dir}/client/wsdl/info/Workflow.wsdl" />
+	<property name="client.control.workflow.wsdl.file" value="${META-INF.dir}/client/wsdl/control/Workflow.wsdl" />
+
+	<!-- Packages -->
+	
+	<!-- Initialize by creating necessary dir -->
+	<target name="init">
+		<mkdir dir="${wsdl.dir}"/>
+		<mkdir dir="${build.dir}"/>
+		<mkdir dir="${gen.dir}" />
+		<mkdir dir="${META-INF.dir}" />
+		<mkdir dir="${META-INF.dir}/server/wsdl" />
+		<mkdir dir="${META-INF.dir}/server/custom" />
+		<mkdir dir="${META-INF.dir}/client/custom" />
+		<mkdir dir="${META-INF.dir}/client/wsdl/info" />
+		<mkdir dir="${META-INF.dir}/client/wsdl/control" />
+	</target>
+	
+	<path id="server.classpath">
+		<!-- define the execution classpath for jaxws server -->
+		<pathelement location="${build.dir}" />
+		<pathelement location="${gen-src}" />
+		<pathelement location="${lib.dir}/WF.jar" />
+   		<pathelement location="${libdir}/WFRandom.jar" />
+		<pathelement location="${libdir}/lab4.jar" />
+	</path>
+	<path id="client.classpath">
+		<!-- define the execution classpath for jaxws client -->
+		<pathelement location="${build.dir}" />	
+		<pathelement location="${gen-src}" />
+				<pathelement location="${lib.dir}/WF.jar" />
+		   		<pathelement location="${libdir}/WFRandom.jar" />
+				<pathelement location="${libdir}/lab4.jar" />
+		</path>
+	
+	<target name="clean">
+		<!-- to remove directories -->
+		<echo message="clean"></echo>	
+		<delete dir="${build.dir}"/>
+		<delete dir="${gen.dir}" />
+		<delete dir="${META-INF.dir}" />
+	</target>
+	
+	
+	
+
+	<target name="build-server" depends="generate-server-wsdl" description="Build the sources">
+		<javac debug="${debug}"
+				debuglevel="${debuglevel}"
+				source="${source}"
+				target="${target}"
+				destdir="${build.dir}"
+				includeantruntime="false">
+			<src path="${src-server.dir}" />
+			<classpath refid="server.classpath" />
+		</javac>
+	</target>
+
+	
+	<target name="build-client" depends="generate-client1-wsdl, generate-client2-wsdl">
+		<javac debug="${debug}"
+						debuglevel="${debuglevel}"
+						source="${source}"
+						target="${target}"
+						destdir="${build.dir}"
+						includeantruntime="false">
+					<src path="${src-client1.dir}" />
+				<classpath refid="client.classpath" />
+		</javac>
+		<javac debug="${debug}"
+					debuglevel="${debuglevel}"
+					source="${source}"
+					target="${target}"
+					destdir="${build.dir}"
+					includeantruntime="false">
+				<src path="${src-client2.dir}" />
+			<classpath refid="client.classpath" />
+		</javac>
+		
+	</target>
+	
+
+	<target name="copy-server-wsdl" depends="init">
+		<!-- copy to META-INF.dir from custom and Wsdl directories-->
+		<copy todir="${META-INF.dir}/server/wsdl">
+			<fileset dir="${wsdl.dir}" />
+		</copy>
+		<copy todir="${META-INF.dir}/server/custom">
+			<fileset dir="${custom.dir}">
+				<exclude name="client-workflow-custom-bindings.xml" />
+			</fileset>
+		</copy>
+
+	</target>
+
+	<target name="generate-server-wsdl" depends="copy-server-wsdl">
+		<!-- Wsdl server class generation-->
+		<exec executable="wsimport" failonerror="true">
+			<arg value="-keep" />
+			<arg value="-d" />
+			<arg path="${build.dir}" />
+			<arg value="-s" />
+			<arg path="${gen.dir}" />
+			<arg value="-b" />
+			<arg path="${META-INF.dir}/server/custom/server-workflow-custom-bindings.xml" />
+			<arg value="-p" />
+			<arg value="it.polito.dp2.WF.sol4.server.jaxws" />
+			<arg file="${wsdl_Server.file}" />
+		</exec>
+	</target>
+
+	<target name="generate-client1-wsdl" depends="init">
+		<!-- Wsdl client1 class generation-->
+		<get src="${url.wsdl}" dest="${META-INF.dir}/client/wsdl/info/Workflow.wsdl"/>
+
+		<copy todir="${META-INF.dir}/client/custom" flatten="true">
+			<resources>
+				<file file="${custom.dir}/client-info-custom-bindings.xml" />
+			</resources>
+		</copy>
+		<exec executable="wsimport" failonerror="true">
+			<arg value="-keep" />
+			<arg value="-d" />
+			<arg path="${build.dir}" />
+			<arg value="-s" />
+			<arg path="${gen.dir}" />
+			<arg value="-b" />
+			<arg path="${META-INF.dir}/client/custom/client-info-custom-bindings.xml" />
+			<arg value="-p" />
+
+			<arg value="it.polito.dp2.WF.sol4.client1.jaxws" />
+
+			<arg file="${client.info.workflow.wsdl.file}" />
+		</exec>
+	</target>
+	<target name="generate-client2-wsdl" depends="init">
+		<!-- Wsdl client2 class generation-->
+		<get src="${url.wsdl2}" dest="${META-INF.dir}/client/wsdl/control/Workflow.wsdl"/>
+		<copy todir="${META-INF.dir}/client/custom" flatten="true">
+			<resources>
+				<file file="${custom.dir}/client-control-custom-bindings.xml" />
+			</resources>
+		</copy>
+
+		<exec executable="wsimport" failonerror="true">
+			<arg value="-keep" />
+			<arg value="-d" />
+			<arg path="${build.dir}" />
+			<arg value="-s" />
+			<arg path="${gen.dir}" />
+			<arg value="-b" />
+			<arg path="${META-INF.dir}/client/custom/client-control-custom-bindings.xml" />
+			<arg value="-p" />
+			<arg value="it.polito.dp2.WF.sol4.client2.jaxws" />
+
+			<arg file="${client.control.workflow.wsdl.file}" />
+		</exec>
+	</target>
+
+	
+</project>
